@@ -49,7 +49,7 @@ def versao_existe_na_pasta(versao, pasta):
         return False
 
 import subprocess
-
+#teste#
 def executar_rotina_quando_nao_acha(versao):
     try:
         shutil.rmtree(r"C:\Apache24\htdocs\sisplan_web_old", ignore_errors=True)
