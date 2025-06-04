@@ -10,7 +10,6 @@ import re
 import shutil
 import json
 
-
 # -------- CONFIGURAÇÕES INICIAIS --------
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -35,9 +34,6 @@ def clicar_elementos(coords):
     pyautogui.click(coords["download"][0], coords["download"][1])
     time.sleep(0.5)
 
-
-# -------- OUTRAS FUNÇÕES DO SCRIPT --------
-
 def versao_existe_na_pasta(versao, pasta):
     try:
         for nome in os.listdir(pasta):
@@ -48,8 +44,6 @@ def versao_existe_na_pasta(versao, pasta):
         messagebox.showerror("Erro ao acessar pasta", str(e))
         return False
 
-import subprocess
-#teste#
 def executar_rotina_quando_nao_acha(versao):
     try:
         shutil.rmtree(r"C:\Apache24\htdocs\sisplan_web_old", ignore_errors=True)
@@ -61,16 +55,14 @@ def executar_rotina_quando_nao_acha(versao):
         os.makedirs(caminhoPasta, exist_ok=True)
 
         time.sleep(15)
-        origem = r"C:\Py\AtualizaPasta\output\AtualizaPasta"
+        origem = r"C:\AtualizarPasta\AtualizaPasta"
         for arquivo in ["ApiLocal.zip", "apiWeb.zip", "sisplan_web.zip"]:
             origem_arquivo = os.path.join(origem, arquivo)
             if os.path.exists(origem_arquivo):
                 shutil.copy(origem_arquivo, caminhoPasta)
 
-        # FECHA O ATUALIZADOR ANTES DE MOSTRAR A MENSAGEM
         subprocess.call('taskkill /f /im atualizador_loja_web.exe', shell=True)
 
-        # Agora força a janela do seu app para frente e mostra a mensagem
         root.lift()
         root.attributes('-topmost', True)
         root.after_idle(root.attributes, '-topmost', False)
@@ -78,19 +70,12 @@ def executar_rotina_quando_nao_acha(versao):
     except Exception as e:
         messagebox.showerror("Erro na rotina", str(e))
 
-
-
-
-
-# -------- FUNÇÃO PRINCIPAL --------
-
 def buscar_versao():
     try:
         exe_path = r'C:\Apache24\htdocs\atualizador_sisplan_web\atualizador_loja_web.exe'
         subprocess.Popen(exe_path)
-        time.sleep(3)  # Ajuste se a janela for mais lenta
+        time.sleep(3)
 
-        # Coordenadas ajustadas para sua tela (OCR da versão)
         x1 = 1000
         y1 = 550
         width = 700
@@ -109,10 +94,13 @@ def buscar_versao():
             if versao_existe_na_pasta(versao, pasta_versoes):
                 resultado = f"Última versão encontrada: {versao}\nStatus: VERSÃO ENCONTRADA NA PASTA! Nenhuma ação será tomada."
                 lbl_resultado.config(text=resultado)
+                # Fecha o atualizador e o app após 1,5 segundos
+                subprocess.call('taskkill /f /im atualizador_loja_web.exe', shell=True)
+                root.after(1500, root.destroy)
             else:
                 resultado = f"Última versão encontrada: {versao}\nStatus: NÃO encontrada em C:\\VersoesWEB\nIniciando download e criação da nova pasta."
                 lbl_resultado.config(text=resultado)
-                clicar_elementos(coords)  # Só clica/baixa se NÃO achou a versão
+                clicar_elementos(coords)
                 executar_rotina_quando_nao_acha(versao)
         else:
             lbl_resultado.config(text="Não foi possível encontrar a versão na imagem.\nVeja o print no arquivo 'recorte_versao.png'.")
@@ -126,10 +114,10 @@ coords = ler_coordenadas()
 root = tk.Tk()
 root.title("Buscar Última Versão")
 
-btn_buscar = tk.Button(root, text="Buscar Última Versão", command=buscar_versao)
-btn_buscar.pack(padx=10, pady=10)
-
-lbl_resultado = tk.Label(root, text="Clique para buscar a versão.")
+lbl_resultado = tk.Label(root, text="Buscando a versão, aguarde...")
 lbl_resultado.pack(padx=10, pady=10)
+
+# --- INÍCIO AUTOMÁTICO ---
+root.after(100, buscar_versao)  # Chama a função buscar_versao() após 100ms da janela abrir
 
 root.mainloop()
